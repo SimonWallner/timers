@@ -1,0 +1,16 @@
+
+body {
+	font-size: 32px;
+	font-family: 'Dosis';
+	font-optical-sizing: auto;
+	font-weight: 500;
+	font-style: normal;
+
+	background-color: rgb(37, 37, 37);
+	color: rgb(226, 226, 226)
+}
+
+.timer {
+	display: flex;
+	gap: 1em
+}
