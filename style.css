@@ -12,5 +12,40 @@ body {
 
 .timer {
 	display: flex;
-	gap: 1em
+	flex-direction: column;
+	border: 2px solid white;
+    display: inline-flex;
+    border-radius: 0.5em;
+    padding: 0.5em;
+    margin: 0.5em;
+	text-transform: uppercase;
+	align-items: center;
+}
+
+.timeline {
+	border: 1px solid grey;
+    border-radius: 5px;
+    padding: 0.5em;
+    margin: 0.5em;
+	font-size: 16px;
+	display: table;
+	width: 100%;
+    box-sizing: border-box;
+}
+
+.line {
+	display: table-row;
+}
+
+.label {
+	display: table-cell;
+}
+
+.bars {
+	display: table-cell;
+}
+
+.running {
+	background-image: linear-gradient(135deg, #ffffff66 25%, #00000066 25%, #00000066 50%, #ffffff66 50%, #ffffff66 75%, #00000066 75%, #00000066 100%);
+	background-size: 28.28px 28.28px;
 }

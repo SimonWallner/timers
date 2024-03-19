@@ -21,70 +21,10 @@ function convertSeconds(seconds) {
 	return `${hours}:${minutes}:${seconds}`;
   }
 
-
-const timers = ['total', 'core']
-const div = document.querySelector('.timers')
-let data = loadData()
-
-timers.forEach((timer) => {
-	const container = document.createElement('div')
-	container.setAttribute('data-timer', timer)
-	container.className = 'timer'
-	container.textContent = timer
-	div.appendChild(container);
-
-	const start = document.createElement('button')
-	start.textContent = 'start'
-	start.onclick = () => {
-
-		const timerData = data[timer] || []
-		timerData.push({
-			type: 'start',
-			time: Date.now() / 1000,
-		})
-		data[timer] = timerData;
-
-		writeData(data)
-	}
-	container.appendChild(start)
-
-	const stop = document.createElement('button')
-	stop.textContent = 'stop'
-	stop.onclick = () => {
-		const timerData = data[timer] || []
-		timerData.push({
-			type: 'stop',
-			time: Date.now() / 1000,
-		})
-		data[timer] = timerData;
-
-		writeData(data)
-	}
-	container.appendChild(stop)
-
-	const duration = document.createElement('span')
-	duration.classList.add('duration')
-	duration.textContent= '--'
-	container.appendChild(duration)
-})
-
-const reset = document.querySelector('[data-action="reset"]')
-reset.onclick = () => {
-	data = {}
-	writeData(data);
-}
-
-
-const updateView = () => {
+  const updateView = () => {
 	timers.forEach((timer) => {
 
-		const timerData = data[timer];
-		if (!timerData) {
-			const div = document.querySelector(`[data-timer="${timer}"]`)
-			const span = div.querySelector('.duration')
-			span.textContent = '--'
-			return;
-		}
+		const timerData = data[timer] ?? [];
 
 		let lastStart = undefined;
 		let sum = 0
@@ -110,10 +50,105 @@ const updateView = () => {
 
 		const div = document.querySelector(`[data-timer="${timer}"]`)
 		const span = div.querySelector('.duration')
-		span.textContent = convertSeconds(sum) + (running ? ' running' : '');
+		span.textContent = convertSeconds(sum)
+		if (running) {
+			div.classList.add('running')
+		}
+		else {
+			div.classList.remove('running')
+		}
 	})
 }
 
+const update = () => {
+	updateView();
+	updateTimeline();
+}
+
+const updateTimeline = () => {
+	const timeline = document.querySelector('.timeline')
+	if (!timeline.appendChild) {
+		return;
+	}
+
+	timeline.innerHTML= '';
+
+	timers.forEach((timer) => {
+		const line = document.createElement('div')
+		line.className = 'line'
+		line.innerHTML = `
+		<span class="label">${timer}</span>
+		<div class="bars"></div>
+		`;
+		timeline.appendChild(line);
+
+		(data[timer] ?? []).forEach((entry) => {
+			const bar = document.createElement('div')
+			bar.className = 'bar';
+			bar.style.width = '100px';
+			bar.textContent = `${entry.type}`
+
+			line.querySelector('.bars').appendChild(bar)
+		})
+	})
+}
+
+
+const timers = ['day', 'core', 'issues', 'invest', 'support external/saas', 'help internal', 'syncs']
+const div = document.querySelector('.timers')
+let data = loadData()
+
+timers.forEach((timer) => {
+	const container = document.createElement('div')
+	container.setAttribute('data-timer', timer)
+	container.className = 'timer'
+	container.innerHTML = `
+	<span class="label">${timer}</span>
+	<div class="controls">
+		<button data-action="start">start</button>
+		<button data-action="stop">stop</button>
+	</div>
+	<span class="duration">--</span>
+	`;
+
+	div.appendChild(container);
+
+	const start = container.querySelector('[data-action="start"]')
+	start.onclick = () => {
+		const timerData = data[timer] || []
+		timerData.push({
+			type: 'start',
+			time: Date.now() / 1000,
+		})
+		data[timer] = timerData;
+
+		writeData(data)
+		update()
+	}
+
+	const stop = container.querySelector('[data-action="stop"')
+	stop.onclick = () => {
+		const timerData = data[timer] || []
+		timerData.push({
+			type: 'stop',
+			time: Date.now() / 1000,
+		})
+		data[timer] = timerData;
+
+		writeData(data)
+		update()
+	}
+})
+
+const reset = document.querySelector('[data-action="reset"]')
+reset.onclick = () => {
+	data = {}
+	writeData(data);
+}
+
+
+update()
+
 setInterval(() => {
-	updateView()
+	update();
 }, 1000);
