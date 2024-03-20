@@ -19,7 +19,24 @@ function convertSeconds(seconds) {
 	seconds = seconds.toFixed(0).padStart(2, '0');
 
 	return `${hours}:${minutes}:${seconds}`;
+}
+
+function convertTimestampToTime(timestamp) {
+	const date = new Date(timestamp * 1000);
+
+	const hours = date.getHours().toString().padStart(2, '0');
+	const minutes = date.getMinutes().toString().padStart(2, '0');
+
+	return `${hours}:${minutes}`;
   }
+
+
+const map = (value, a, b,  r, s) => {
+    const normalized = (value - a) / (b - a);
+    return r + normalized * (s - r);
+}
+
+const now = () => Date.now() / 1000;
 
   const updateView = () => {
 	timers.forEach((timer) => {
@@ -42,7 +59,7 @@ function convertSeconds(seconds) {
 		})
 
 		if (lastStart !== undefined) {
-			const duration = (Date.now() / 1000) - lastStart;
+			const duration = now() - lastStart;
 			sum += duration
 			lastStart = undefined;
 			running = true
@@ -60,11 +77,6 @@ function convertSeconds(seconds) {
 	})
 }
 
-const update = () => {
-	updateView();
-	updateTimeline();
-}
-
 const updateTimeline = () => {
 	const timeline = document.querySelector('.timeline')
 	if (!timeline.appendChild) {
@@ -72,6 +84,15 @@ const updateTimeline = () => {
 	}
 
 	timeline.innerHTML= '';
+
+	let min = Number.MAX_VALUE;
+	let max = now();
+	timers.forEach((timer) => {
+		(data[timer] ?? []).forEach((entry) => {
+			min = Math.min(min, entry.time);
+			max = Math.max(max, entry.time);
+		})
+	})
 
 	timers.forEach((timer) => {
 		const line = document.createElement('div')
@@ -82,15 +103,43 @@ const updateTimeline = () => {
 		`;
 		timeline.appendChild(line);
 
-		(data[timer] ?? []).forEach((entry) => {
-			const bar = document.createElement('div')
-			bar.className = 'bar';
-			bar.style.width = '100px';
-			bar.textContent = `${entry.type}`
+		let start = undefined;
 
-			line.querySelector('.bars').appendChild(bar)
+		dataCopy = JSON.parse(JSON.stringify(data[timer] ?? []))
+		if (dataCopy.length > 0 && dataCopy[dataCopy.length - 1].type === 'start') {
+			dataCopy.push({ type: 'stop', time: now(), running: true})
+		}
+
+		dataCopy.forEach((entry) => {
+			if (entry.type === 'start') {
+				start = entry.time;
+			}
+
+			if (entry.type === 'stop') {
+
+				const bar = document.createElement('div')
+				bar.className = 'bar';
+
+				const duration = entry.time - start;
+				bar.style.left = `${map(start, min, max, 0, 100)}%`
+				bar.style.width = `${map(duration, 0, max - min, 0, 100)}%`;
+
+				bar.textContent = `${convertTimestampToTime(start)} - ${entry.running ? '' : convertTimestampToTime(entry.time)}`
+
+				if (entry.running) {
+					bar.classList.add('running')
+				}
+
+				line.querySelector('.bars').appendChild(bar)
+				start = undefined;
+			}
 		})
 	})
+}
+
+const update = () => {
+	updateView();
+	updateTimeline();
 }
 
 
@@ -118,7 +167,7 @@ timers.forEach((timer) => {
 		const timerData = data[timer] || []
 		timerData.push({
 			type: 'start',
-			time: Date.now() / 1000,
+			time: now(),
 		})
 		data[timer] = timerData;
 
@@ -131,7 +180,7 @@ timers.forEach((timer) => {
 		const timerData = data[timer] || []
 		timerData.push({
 			type: 'stop',
-			time: Date.now() / 1000,
+			time: now(),
 		})
 		data[timer] = timerData;
 
@@ -150,5 +199,5 @@ reset.onclick = () => {
 update()
 
 setInterval(() => {
-	update();
+	// update();
 }, 1000);

@@ -22,6 +22,18 @@ body {
 	align-items: center;
 }
 
+.timer.running [data-action="start"] {
+	display: none;
+}
+
+.timer [data-action="stop"] {
+	display: none;
+}
+
+.timer.running [data-action="stop"] {
+	display: unset;
+}
+
 .timeline {
 	border: 1px solid grey;
     border-radius: 5px;
@@ -29,20 +41,42 @@ body {
     margin: 0.5em;
 	font-size: 16px;
 	display: table;
+	border-collapse: collapse;
 	width: 100%;
     box-sizing: border-box;
 }
 
 .line {
 	display: table-row;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.264);
+	padding: 0.2em;
 }
 
-.label {
+.timeline .label {
 	display: table-cell;
+	width: 150px;
+	padding: 0.3em
 }
 
 .bars {
 	display: table-cell;
+	background-color: rgb(56, 56, 56);
+	position: relative;
+	padding: 1.3em;
+}
+
+.bar {
+	background-color: rgb(226, 226, 226);
+	border-radius: 0.2em;
+	position: absolute;
+	top: 0.5em;
+	color: grey;
+    white-space: nowrap;
+	padding: 0.2em;
+}
+
+.bar.running {
+	background-color: yellow;
 }
 
 .running {
