@@ -30,6 +30,12 @@ function convertTimestampToTime(timestamp) {
 	return `${hours}:${minutes}`;
   }
 
+const getNextFullHourOffset = (timestamp, hourOffset) => {
+	const date = new Date(timestamp * 1000);
+	date.setMinutes(0, 0, 0);
+	date.setHours(date.getHours() + hourOffset);
+	return date.getTime() / 1000;
+  }
 
 const map = (value, a, b,  r, s) => {
     const normalized = (value - a) / (b - a);
@@ -87,12 +93,25 @@ const updateTimeline = () => {
 
 	let min = Number.MAX_VALUE;
 	let max = now();
+
 	timers.forEach((timer) => {
 		(data[timer] ?? []).forEach((entry) => {
 			min = Math.min(min, entry.time);
 			max = Math.max(max, entry.time);
 		})
 	})
+
+	min = getNextFullHourOffset(min, -1)
+	max = getNextFullHourOffset(max, 1)
+
+
+	const marks = [];
+	let t = min
+	while (t < max) {
+		const mark = getNextFullHourOffset(t, 0);
+		marks.push(mark)
+		t = getNextFullHourOffset(mark, 1);
+	}
 
 	timers.forEach((timer) => {
 		const line = document.createElement('div')
@@ -134,6 +153,20 @@ const updateTimeline = () => {
 				start = undefined;
 			}
 		})
+	})
+	const axis = document.createElement('div')
+	axis.className = 'axis'
+	axis.innerHTML = '<div class="marks"></div>';
+	timeline.appendChild(axis);
+	const marksDiv = axis.querySelector('.marks');
+
+	marks.forEach((t) => {
+		const mark = document.createElement('div');
+		mark.className = 'mark';
+		mark.style.left = `${map(t, min, max, 0, 100)}%`;
+		mark.textContent = convertTimestampToTime(t);
+		marksDiv.appendChild(mark);
+
 	})
 }
 
