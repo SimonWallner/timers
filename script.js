@@ -101,7 +101,7 @@ const updateTimeline = () => {
 		})
 	})
 
-	min = getNextFullHourOffset(min, -1)
+	min = getNextFullHourOffset(min, 0)
 	max = getNextFullHourOffset(max, 1)
 
 
